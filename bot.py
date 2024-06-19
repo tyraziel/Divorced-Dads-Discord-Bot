@@ -26,7 +26,7 @@ dmlogger = logging.getLogger('DirectMessage')
 
 version = 'v0.0.1-beta'
 
-cliParser = argparse.ArgumentParser(prog='compleat_bot', description='JumpStart Compleat Bot', epilog='', add_help=False)
+cliParser = argparse.ArgumentParser(prog='ddads_bot', description='Divorced Dads Bot', epilog='', add_help=False)
 cliParser.add_argument('-e', '--env', choices=['DEV', 'PROD'], default='DEV', action='store')
 cliParser.add_argument('-d', '--debug', default=False, action='store_true')
 cliArgs = cliParser.parse_args()
@@ -51,12 +51,12 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 #bot = discord.bot(intents=intents)
-bot = commands.Bot(command_prefix=['!'], intents=intents) #command_prefix can be one item - i.e. '!' or a list - i.e. ['!','#','$']
+bot = commands.Bot(command_prefix=['^'], intents=intents) #command_prefix can be one item - i.e. '!' or a list - i.e. ['!','#','$']
 
 # \[\[([^[][^\]]*)\]\]
 # \[\[([^\[\]]+)\]\]
-card_fetch_pattern = re.compile("\[\[([^\[\]]+)\]\]", re.IGNORECASE | re.MULTILINE)
-card_fetch_pattern_2 = re.compile("!(.+?)!", re.IGNORECASE | re.MULTILINE)
+card_fetch_pattern = re.compile("\[\[(\w[\w' ]*)\]\]", re.IGNORECASE | re.MULTILINE)
+card_fetch_pattern_2 = re.compile("!(\w[\w' ]*)!", re.IGNORECASE | re.MULTILINE)
 
 db_con = None
 db_cur = None
@@ -67,12 +67,14 @@ async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="With these cards I'm never alone!")) #Getting in to it!
     logger.info(f'We have logged in as {bot.user} with status {bot.status}')
 
+    startTime = time.time()
     logger.info(f'Loading Database.....')    
     global db_con
     db_con = sqlite3.connect("divorced-dads.db")
     global db_cur 
     db_cur = db_con.cursor()
-    logger.info(f'Database Loaded!')
+    endTime = time.time()
+    logger.info(f'Database Loaded!  Took {endTime - startTime:.5f}s')
 
 #using @bot.listen() will listen for messages, but will continue processing commands, so having the await bot.process_commands(message) when this is set with @bot.listen() decorator it will fire the command twice.
 @bot.event  
@@ -102,9 +104,15 @@ async def on_message(message):
 
     #await message.channel.send(f"Got {message.content}")
 
-    cards_to_search = card_fetch_pattern.findall(message.content)
-    #append card_fetch_pattern2.findall(message.content)
-    if cards_to_search:
+    cards_to_search = []
+
+    cards_to_search_pattern_one = card_fetch_pattern.findall(message.content)
+    cards_to_search_pattern_two = card_fetch_pattern_2.findall(message.content)
+
+    cards_to_search.extend(cards_to_search_pattern_one)
+    cards_to_search.extend(cards_to_search_pattern_two)
+
+    if len(cards_to_search) > 0:
         counter = 0
         #await message.channel.send(f"You want me to look up {len(cards_to_search)} cards?")
         for card_to_search in cards_to_search:

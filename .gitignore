@@ -1,2 +1,6 @@
 .*env
 *cache*/
+*.csv
+*.db
+*.log
+*.sh
