@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(name)-16s] [%(l
 logger = logging.getLogger()
 dmlogger = logging.getLogger('DirectMessage')
 
-version = 'v0.0.1-beta'
+version = 'v0.1.0-beta'
 
 cliParser = argparse.ArgumentParser(prog='ddads_bot', description='Divorced Dads Bot', epilog='', add_help=False)
 cliParser.add_argument('-e', '--env', choices=['DEV', 'PROD'], default='DEV', action='store')
