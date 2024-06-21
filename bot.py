@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(name)-16s] [%(l
 logger = logging.getLogger()
 dmlogger = logging.getLogger('DirectMessage')
 
-version = 'v0.1.0-beta'
+version = 'v0.2.0-beta'
 
 cliParser = argparse.ArgumentParser(prog='ddads_bot', description='Divorced Dads Bot', epilog='', add_help=False)
 cliParser.add_argument('-e', '--env', choices=['DEV', 'PROD'], default='DEV', action='store')
@@ -47,6 +47,8 @@ if('PROD' == cliArgs.env.upper()):
 else:
     logger.info(f'This is running DEVELOPMENT MODE and the DEVELOPMENT bot will connect to your test server')
 
+channel_id_for_reports = int(bot_env['REPORT_CHANNEL_ID'])
+
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -63,7 +65,6 @@ db_cur = None
 
 @bot.event
 async def on_ready():
-    #print(f'{jsd.jumpstart}')
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="With these cards I'm never alone!")) #Getting in to it!
     logger.info(f'We have logged in as {bot.user} with status {bot.status}')
 
@@ -189,6 +190,18 @@ async def on_message(message):
 
     await bot.process_commands(message) #this will continue processing to allow commands to fire.
 
+@bot.command(aliases=['report', 'e', 'issue', 'bug'])
+async def error(ctx):
+    message = ctx.message
+    #logger.info(f"{ctx.message}")
+    channel = bot.get_channel(channel_id_for_reports) #channel ID for reports
+    message_author = ctx.message.author.nick
+    if ctx.message.author.nick == None:
+        message_author = ctx.message.author.global_name
+    await ctx.send(f"Thank you for your report, {message_author}.")
+    await channel.send(f"ERROR REPORT from user {message_author}({ctx.message.author.global_name}) - {ctx.message.content}")
+    #await message.delete() #do we want to delete the report?  idk....
+    
 @bot.command()
 async def quote(ctx):
     quotes = ["Now that we're into it, let's get into it!",
